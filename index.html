@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Proximity - HC-SR04</title>
+</head>
+<body>
+  <H1>Proximity - HC-SR04</H1>
+  <div id="app">
+    <radar-chart :chart-data="chartData"></radar-chart>
+  </div>
+</body>
+</html>
+
+<script src="https://unpkg.com/vue"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+<script src="https://unpkg.com/vue-chartjs@3.0.1-rc2/dist/vue-chartjs.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const MAX = 50
+  
+  Vue.component('radar-chart', {
+    extends: VueChartJs.PolarArea,
+    mixins: [VueChartJs.mixins.reactiveProp],
+    mounted () {
+      this.renderChart(this.chartData, {
+        animation: false,
+        maintainAspectRatio: false,
+        responsive: true,
+        scale: {
+          ticks: {
+            beginAtZero: true,
+            max: MAX
+          }
+        }
+      })
+    }
+  })
+
+  var vm = new Vue({
+    el: '#app',
+    data: {
+      distance: 0,
+      distance2: 0
+    },
+    created() {
+      const socket = io.connect();
+  
+      socket.on('distance', (data) => {
+        //console.log(data);
+        this.distance = data > MAX ? MAX : data;
+      });
+      
+      socket.on('distance2', (data) => {
+        //console.log(data);
+        this.distance2 = data > MAX ? MAX : data;
+      });
+    },
+    computed: {
+      chartData() {
+        return {
+          datasets: [
+            {
+              data: [this.distance, this.distance2],
+              backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+              ],
+              borderColor: [
+                'rgba(255,99,132, 0.8)',
+                'rgba(54, 162, 235,  0.8)',
+                'rgba(255, 206, 86,  0.8)',
+                'rgba(75, 192, 192,  0.8)',
+                'rgba(153, 102, 255,  0.8)',
+                'rgba(255, 159, 64,  0.8)'
+              ],
+              borderWidth: 1
+            }
+          ],
+          labels: ['HC-SR04 1', 'HC-SR04 2']
+        }
+      }
+    }
+  })
+
+</script>
